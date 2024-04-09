@@ -2,9 +2,6 @@ import { Component } from 'react';
 import simpleLightbox from 'simplelightbox';
 import 'simplelightbox/dist/simple-lightbox.min.css';
 
-// let searchQuery;
-// let perPageItems;
-// let pageSet;
 class App extends Component {
   state = {
     key: '18941965-072e6ae370689f800c64fac36',
@@ -48,15 +45,14 @@ class App extends Component {
     const { key, q, image_type, orientation, safesearch, per_page, page } =
       this.state;
 
-    // Konstruujemy URL zapytania do Pixabay API zgodnie z dokumentacją
     const URL = `https://pixabay.com/api/?key=${key}&q=${encodeURIComponent(
       q
     )}&image_type=${image_type}&orientation=${orientation}&safesearch=${safesearch}&per_page=${per_page}&page=${page}`;
-
+    console.log(this.state.page);
     fetch(URL)
       .then(response => response.json())
       .then(data => {
-        this.setState({ imageData: data.hits }); // Store fetched data in state
+        this.setState({ imageData: data.hits, page: 1, q: null });
       })
       .catch(error => {
         console.log(
@@ -65,32 +61,12 @@ class App extends Component {
       });
   };
 
-  // loadMoreImages = e => {
-  //   e.preventDefault();
-  //   this.setState(prevState => ({
-  //     per_page: prevState.per_page + 10,
-  //   }));
-  // };
-
-  // loadMoreImages = e => {
-  //   e.preventDefault();
-  //   this.setState(
-  //     prevState => ({
-  //       per_page: prevState.per_page + 10,
-  //       page: Math.floor((prevState.per_page + 10) / 10) + 1, // Increment page number
-  //     }),
-  //     () => {
-  //       this.handleSubmit(e); // Trigger search with updated parameters
-  //     }
-  //   );
-  // };
-
   loadMoreImages = e => {
     e.preventDefault();
     const { key, q, image_type, orientation, safesearch, per_page, page } =
       this.state;
 
-    const nextPage = page + 1; // Calculate the next page
+    const nextPage = page + 1;
 
     const URL = `https://pixabay.com/api/?key=${key}&q=${encodeURIComponent(
       q
