@@ -1,11 +1,15 @@
+import Notiflix from 'notiflix';
 import { Component } from 'react';
 import simpleLightbox from 'simplelightbox';
+
 import 'simplelightbox/dist/simple-lightbox.min.css';
+import Header from './Header';
+import Images from './Images';
 
 class App extends Component {
   state = {
     key: '18941965-072e6ae370689f800c64fac36',
-    q: null,
+    q: '',
     image_type: 'photo',
     orientation: 'horizontal',
     safesearch: true,
@@ -35,30 +39,41 @@ class App extends Component {
   handleOnChange = e => {
     this.setState({
       q: e.target.value,
+      page: 1,
     });
   };
 
   handleSubmit = e => {
     e.preventDefault();
-    // const URL = `https://pixabay.com/api/?${this.state.q}`;
 
     const { key, q, image_type, orientation, safesearch, per_page, page } =
       this.state;
 
+    if (!q) {
+      Notiflix.Notify.info('Please enter a search query.');
+      return;
+    }
+
     const URL = `https://pixabay.com/api/?key=${key}&q=${encodeURIComponent(
       q
     )}&image_type=${image_type}&orientation=${orientation}&safesearch=${safesearch}&per_page=${per_page}&page=${page}`;
-    console.log(this.state.page);
+
     fetch(URL)
       .then(response => response.json())
       .then(data => {
-        this.setState({ imageData: data.hits, page: 1, q: null });
+        if (data.hits.length === 0) {
+          // throw new Error('No images matching your search query');
+          Notiflix.Notify.failure('No images matching your search query');
+        }
+        this.setState({ imageData: data.hits });
       })
       .catch(error => {
+        this.setState({ imageData: [] });
         console.log(
           'Sorry, there are no images matching your search query. Please try again.'
         );
       });
+    e.target.reset();
   };
 
   loadMoreImages = e => {
@@ -88,46 +103,16 @@ class App extends Component {
   };
 
   render() {
-    const { imageData } = this.state;
-
     return (
       <>
-        <header className="searchbar">
-          <form className="form" onSubmit={this.handleSubmit}>
-            <button type="submit" className="button">
-              <span className="button-label">Search</span>
-            </button>
-
-            <input
-              className="input"
-              type="text"
-              // autocomplete="off"
-              // autofocus
-              placeholder="Search images and photos"
-              onChange={this.handleOnChange}
-            />
-          </form>
-        </header>
-        {imageData.length > 0 ? (
-          <>
-            <ul className="gallery">
-              {imageData.map((value, index) => {
-                return (
-                  <li key={index} className="gallery-item">
-                    <a href={value.largeImageURL}>
-                      <img src={value.largeImageURL} alt="" />
-                    </a>
-                  </li>
-                );
-              })}
-            </ul>
-            <button className="loadMore" onClick={this.loadMoreImages}>
-              Load More images
-            </button>
-          </>
-        ) : (
-          console.log('no image')
-        )}
+        <Header
+          handleSubmit={this.handleSubmit}
+          handleOnChange={this.handleOnChange}
+        />
+        <Images
+          imageData={this.state.imageData}
+          loadMoreImages={this.loadMoreImages}
+        />
       </>
     );
   }
